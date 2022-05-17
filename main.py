@@ -1,5 +1,7 @@
 import json
 import os
+import xml.etree.ElementTree as ET
+
 from pprint import pprint
 
 file_adress = os.path.join(os.getcwd(), 'formats.json.xml')
@@ -21,7 +23,19 @@ def json_open(adress: 'file adress json') -> list:
 
 
 def xml_open(adress: 'file adress xml') -> list:
-    pass
+    parser = ET.XMLParser(encoding='utf-8')
+    tree = ET.parse(adress, parser)
+    root = tree.getroot()
+    xml_items = root.findall('channel/item')
+    result = []
+    for xmli in xml_items:
+        result.extend(word_filter(xmli.find('description').text))
+    words = {}
+    for i in result:
+        words[i] = words.get(i, 0) + 1
+    result = list(map(lambda w: w[0], sorted(list(words.items()), key=lambda x: -x[1])))
+    return result[:10]
+    return result
 
 
 def word_filter(text):
@@ -34,4 +48,4 @@ def word_filter(text):
 
 
 print(json_open(os.path.join(file_adress, JSON_FINE_NAME)))
-print(json_open(os.path.join(file_adress, XML_FILE_NAME)))
+print(xml_open(os.path.join(file_adress, XML_FILE_NAME)))
